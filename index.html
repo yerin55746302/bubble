@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.5.0/p5.min.js"></script>
+<!--   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.3/addons/p5.dom.min.js"></script> -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.3/addons/p5.sound.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <meta charset="utf-8" />
+  <style>
+    html, body {
+  margin: 0;
+  padding: 0;
+}
+canvas {
+  display: block;
+}
+
+  </style>
+</head>
+
+<body>
+  <script>
+let paintSpots = [];
+
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+  noFill();
+}
+
+function draw() {
+  background(220);
+
+  if (mouseIsPressed) {
+    let spot = new PaintSpot(createVector(mouseX, mouseY));
+    paintSpots.push(spot);
+  }
+
+  for (let spot of paintSpots) {
+    spot.show();
+    spot.spread();  // 계속 확장
+  }
+}
+
+class PaintSpot {
+  constructor(position) {
+    this.position = position;
+    this.branches = [];
+    this.finished = false;
+    this.color = color(random(150, 255), random(50, 150), random(150, 255), 150);
+    this.branches.push(new Branch(this.position, p5.Vector.random2D().mult(random(10, 40))));
+  }
+
+  spread() {
+    if (!this.finished) {
+      for (let i = this.branches.length - 1; i >= 0; i--) {
+        if (!this.branches[i].finished) {
+          this.branches.push(this.branches[i].branchA());
+          this.branches.push(this.branches[i].branchB());
+          this.branches[i].finished = true;
+        }
+      }
+      if (this.branches.length > 100) {
+        this.finished = true;
+      }
+    }
+  }
+
+  show() {
+    noFill();
+    for (let branch of this.branches) {
+      stroke(this.color);
+      strokeWeight(2);
+      line(branch.start.x, branch.start.y, branch.end.x, branch.end.y);
+    }
+  }
+}
+
+class Branch {
+  constructor(start, dir) {
+    this.start = start;
+    this.end = p5.Vector.add(start, dir);
+    this.finished = false;
+  }
+
+  branchA() {
+    let dir = p5.Vector.sub(this.end, this.start);
+    dir.rotate(random(-PI / 8, PI / 8));
+    dir.mult(random(0.5, 0.8));
+    return new Branch(this.end, dir);
+  }
+
+  branchB() {
+    let dir = p5.Vector.sub(this.end, this.start);
+    dir.rotate(random(-PI / 8, PI / 8));
+    dir.mult(random(0.5, 0.8));
+    return new Branch(this.end, dir);
+  }
+}
+
+  </script>
+</body>
